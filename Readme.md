@@ -13,12 +13,10 @@ The architecture is:
 
 ## 🔥 Purpose
 
--   Capture **real Ethernet frames** from a network interface (e.g.,
-    `eth0`, `veth0`).
--   Forward those frames to a **Gleam server** for decoding and
-    decision-making.
--   Gleam produces a **raw Ethernet reply frame**.
--   Go injects that reply back onto the real network interface.
+- Capture **real Ethernet frames** from a network interface (e.g., `eth0`, `veth0`).
+- Forward those frames to a **Gleam server** for decoding and decision-making.
+- Gleam produces a **raw Ethernet reply frame**.
+- Go injects that reply back onto the real network interface.
 
 This approach allows you to write protocol logic (ARP, ICMP, DHCP,
 custom protocols) in **safe, elegant Gleam**, while Go handles the
@@ -37,21 +35,21 @@ received from `eth0`. UNIX datagram sockets deliver raw bytes unchanged.
 
 UNIX *datagram* sockets preserve message boundaries:
 
--   1 datagram = 1 Ethernet frame\
--   No length prefix\
--   No metadata\
--   No TCP problems (frame splitting / merging)
+- 1 datagram = 1 Ethernet frame
+- No length prefix
+- No metadata
+- No TCP problems (frame splitting / merging)
 
 ### ✔ Safety
 
--   Go handles unsafe raw socket operations.\
--   Gleam stays pure, functional, and safe---no NIFs, no unsafe memory.
+- Go handles unsafe raw socket operations.
+- Gleam stays pure, functional, and safe---no NIFs, no unsafe memory.
 
 ### ✔ Performance
 
--   UNIX domain sockets are extremely fast (faster than TCP localhost).
--   Frame sizes (\<2 KB) fit perfectly within UDS message limits.
--   Kernel‑level zero copy for local IPC.
+- UNIX domain sockets are extremely fast (faster than TCP localhost).
+- Frame sizes (\<2 KB) fit perfectly within UDS message limits.
+- Kernel‑level zero copy for local IPC.
 
 ------------------------------------------------------------------------
 
@@ -59,20 +57,19 @@ UNIX *datagram* sockets preserve message boundaries:
 
 ### 1. **Go Raw Socket Binder**
 
--   Opens an `AF_PACKET` raw socket bound to a real interface (`eth0`).
--   Reads full Ethernet frames.
--   Sends a frame as a datagram to the Gleam process via UNIX DGRAM
-    socket.
--   Waits for a possible reply frame from Gleam.
--   Injects the reply onto the real NIC using `Sendto`.
+- Opens an `AF_PACKET` raw socket bound to a real interface (`eth0`).
+- Reads full Ethernet frames.
+- Sends a frame as a datagram to the Gleam process via UNIX DGRAM socket.
+- Waits for a possible reply frame from Gleam.
+- Injects the reply onto the real NIC using `Sendto`.
 
 ### 2. **Gleam Packet Logic**
 
--   Listens on a UNIX DGRAM socket.
--   Receives one Ethernet frame per datagram.
--   Decodes L2/L3/L4 models (ARP, IPv4, ICMP, etc.).
--   Computes a reply frame (if needed).
--   Sends reply as a datagram to the Go endpoint.
+- Listens on a UNIX DGRAM socket.
+- Receives one Ethernet frame per datagram.
+- Decodes L2/L3/L4 models (ARP, IPv4, ICMP, etc.).
+- Computes a reply frame (if needed).
+- Sends reply as a datagram to the Go endpoint.
 
 ------------------------------------------------------------------------
 
@@ -91,18 +88,16 @@ Go writes to one and reads from the other. Gleam does the reverse.
 
 The Go binary:
 
--   binds `eth0`
--   reads frames
--   sends them to `/tmp/raw_to_gleam.sock`
--   receives any replies from `/tmp/gleam_to_raw.sock`
--   pushes replies back to the NIC
+- binds `eth0`
+- reads frames
+- sends them to `/tmp/raw_to_gleam.sock`
+- receives any replies from `/tmp/gleam_to_raw.sock`
+- pushes replies back to the NIC
 
 Run it with:
 
 ``` sh
-cd go/
-go build .
-sudo ./raw_binder --iface eth0
+just run_raw_binder
 ```
 
 ------------------------------------------------------------------------
@@ -111,29 +106,38 @@ sudo ./raw_binder --iface eth0
 
 The Gleam server:
 
--   binds `/tmp/gleam_to_raw.sock`
--   reads frames from `/tmp/raw_to_gleam.sock`
--   decodes & decides
--   responds with a raw Ethernet frame
+- binds `/tmp/gleam_to_raw.sock`
+- reads frames from `/tmp/raw_to_gleam.sock`
+- decodes & decides
+- responds with a raw Ethernet frame
 
 Run:
 
 ``` sh
-cd gleam/
-gleam run
+just run_etherbeam
+```
+
+------------------------------------------------------------------------
+
+### 4. Build & Run
+
+- We are using [just](https://github.com/casey/just)
+
+```sh
+just --list
 ```
 
 ------------------------------------------------------------------------
 
 ## 🧪 Example Applications
 
--   **ARP responder**
--   **Ping/ICMP echo responder**
--   **DHCP server**
--   **Custom L2/L3 simulation**
--   **Virtual network appliance**
--   **User‑space firewall**
--   **Educational packet decoder**
+- **ARP responder**
+- **Ping/ICMP echo responder**
+- **DHCP server**
+- **Custom L2/L3 simulation**
+- **Virtual network appliance**
+- **User‑space firewall**
+- **Educational packet decoder**
 
 ------------------------------------------------------------------------
 
@@ -155,37 +159,3 @@ messages.
 ### Concurrency
 
 Gleam can spawn 1 process per frame---great for parallelism.
-
-------------------------------------------------------------------------
-
-## 📂 Folder Structure
-
-    .
-    ├── go/
-    │   └── raw_binder.go
-    ├── gleam/
-    │   ├── src/
-    │   │   ├── main.gleam
-    │   │   └── protocol/
-    │   │       ├── ethernet.gleam
-    │   │       ├── arp.gleam
-    │   │       └── ipv4.gleam
-    └── README.md
-
-------------------------------------------------------------------------
-
-## ✔ Summary
-
-This design gives you:
-
--   Real Ethernet frame processing\
--   Fast, safe IPC\
--   Clean split between unsafe low-level IO (Go) and high-level logic
-    (Gleam)\
--   No need for complicated protocols or shared memory
-
-A perfect foundation for building a **user-space networking toolkit**.
-
-------------------------------------------------------------------------
-
-## ❤️ Enjoy building your mini network stack!
