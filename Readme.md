@@ -122,9 +122,22 @@ just run_etherbeam
 ### 4. Build & Run
 
 - We are using [just](https://github.com/casey/just)
-
+- To have all recipes:
 ```sh
 just --list
+Available recipes:
+    build
+    build_etherbeam
+    build_raw_binder
+    default
+    run
+    run_etherbeam
+    run_raw_binder
+```
+
+Run:
+```sh
+just run
 ```
 
 ------------------------------------------------------------------------

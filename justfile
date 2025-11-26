@@ -1,7 +1,7 @@
-default: build_all
+default: build
 
-build_all : build_raw_binder build_etherbeam
-run_all: run_raw_binder run_etherbeam
+build : build_raw_binder build_etherbeam
+run: run_raw_binder run_etherbeam
 
 [working-directory: 'go']
 @build_raw_binder:
