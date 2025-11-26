@@ -98,6 +98,8 @@ Run it with:
 
 ``` sh
 just run_raw_binder
+Running raw_binder
+Hello, Sailor!
 ```
 
 ------------------------------------------------------------------------
@@ -115,6 +117,10 @@ Run:
 
 ``` sh
 just run_etherbeam
+Running etherbeam
+   Compiled in 0.01s
+    Running etherbeam.main
+Hello, Joe!
 ```
 
 ------------------------------------------------------------------------
@@ -138,6 +144,13 @@ Available recipes:
 Run:
 ```sh
 just run
+❯ just run
+Running raw_binder
+Hello, Sailor!
+Running etherbeam
+   Compiled in 0.01s
+    Running etherbeam.main
+Hello, Joe!
 ```
 
 ------------------------------------------------------------------------
